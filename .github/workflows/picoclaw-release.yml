@@ -62,12 +62,21 @@ jobs:
           free -h | head -2
           echo "================================"
 
+      - name: Update Go toolchain
+        run: |
+          # OpenWrt 24.10 自带 Go 1.23，PicoClaw 需要 Go >= 1.25
+          # 使用 sbwml 维护的新版 Go 包替换 SDK 自带版本
+          # 克隆到 workspace 后，action 会将其作为 feed 的一部分挂载到容器中
+          git clone https://github.com/sbwml/packages_lang_golang -b 23.x golang
+          echo "Go version in sbwml package:"
+          grep 'GO_VERSION_MAJOR_MINOR\|GO_VERSION_PATCH' golang/golang/Makefile | head -5
+
       - name: Building packages
         uses: sbwml/openwrt-gh-action-sdk@main
         env:
           ARCH: ${{ matrix.arch }}-openwrt-24.10
           FEEDNAME: packages_ci
-          PACKAGES: picoclaw luci-app-picoclaw
+          PACKAGES: golang picoclaw luci-app-picoclaw
           NO_REFRESH_CHECK: true
           NO_SHFMT_CHECK: true
           V: s
