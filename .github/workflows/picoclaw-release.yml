@@ -5,25 +5,20 @@ on:
     tags:
       - picoclaw-v*
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'PicoClaw version to build'
-        required: false
-        default: '0.1.2'
 
 jobs:
   build:
-    name: Build ${{ matrix.arch }}
+    name: Build ${{ matrix.arch }}-${{ matrix.sdk }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         arch:
-          # === ARM64 (aarch64) — 全部支持 Go ===
+          # === ARM64 (aarch64) ===
           - aarch64_cortex-a53
           - aarch64_cortex-a72
           - aarch64_generic
-          # === ARM 32-bit — 仅保留有 SDK 镜像且支持 Go 的架构 ===
+          # === ARM 32-bit ===
           - arm_arm1176jzf-s_vfp
           - arm_arm926ej-s
           - arm_cortex-a15_neon-vfpv4
@@ -36,61 +31,41 @@ jobs:
           - i386_pentium-mmx
           - i386_pentium4
           - x86_64
-          # === MIPS — 仅保留有 SDK 镜像的架构 ===
+          # === MIPS ===
           - mips_24kc
           - mipsel_24kc
           - mipsel_74kc
-          # 以下架构已移除（SDK 镜像不存在或 Go 不支持）：
-          # arm_cortex-a8_vfpv3, arm_cortex-a9, arm_cortex-a9_neon,
-          # arm_fa526, arm_mpcore,
-          # mips64_octeonplus, mips_4kec, mips_mips32,
-          # mipsel_24kc_24kf, mipsel_mips32
+        sdk:
+          - openwrt-24.10
+          - SNAPSHOT
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup build environment
-        run: |
-          echo "========== Build Info =========="
-          echo "Architecture: ${{ matrix.arch }}"
-          echo "Runner OS:    $(lsb_release -ds 2>/dev/null || echo $RUNNER_OS)"
-          df -h / | tail -1
-          free -h | head -2
-          echo "================================"
-
-      - name: Building packages
-        uses: sbwml/openwrt-gh-action-sdk@main
+      - name: Build Packages # using go1.25 branch for updated toolchain
+        uses: sbwml/openwrt-gh-action-sdk@go1.25
         env:
-          ARCH: ${{ matrix.arch }}-SNAPSHOT
+          ARCH: ${{ matrix.arch }}-${{ matrix.sdk }}
           FEEDNAME: packages_ci
           PACKAGES: luci-app-picoclaw
           NO_REFRESH_CHECK: true
           NO_SHFMT_CHECK: true
           V: s
 
-      - name: Show compiled packages
-        if: always()
-        run: |
-          echo "========== Searching for IPK files =========="
-          find . -name "*.ipk" 2>/dev/null | head -30
-          echo ""
-          echo "========== Directory structure =========="
-          ls -la bin/ 2>/dev/null || echo "No bin/ directory"
-          ls -la packages/ 2>/dev/null || echo "No packages/ directory"
-          echo ""
-          echo "========== Build logs (last 100 lines if failed) =========="
-          find . -path "*/picoclaw/compile.txt" -exec tail -100 {} \; 2>/dev/null
-
       - name: Upload artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: picoclaw-${{ matrix.arch }}
+          name: ${{ matrix.arch }}-${{ matrix.sdk }}
           path: |
+            bin/packages/${{ matrix.arch }}/packages_ci/*.apk
             bin/packages/${{ matrix.arch }}/packages_ci/*.ipk
-            packages/${{ matrix.arch }}/packages_ci/*.ipk
+
+      - name: Create compress files
+        continue-on-error: true
+        run: |
+          tar -zcvf ${{ matrix.sdk }}-${{ matrix.arch }}.tar.gz -C bin/packages/${{ matrix.arch }}/ packages_ci
 
       - name: Upload packages
         if: startsWith(github.ref, 'refs/tags/')
@@ -100,4 +75,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
           replacesArtifacts: true
-          artifacts: "packages/${{ matrix.arch }}/packages_ci/*.ipk"
+          prerelease: false
+          artifacts: "${{ matrix.sdk }}-${{ matrix.arch }}.tar.gz"

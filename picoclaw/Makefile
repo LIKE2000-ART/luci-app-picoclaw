@@ -14,35 +14,30 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/sipeed/picoclaw/tar.gz/v$(PKG_VERSION)?
 PKG_HASH:=973faa529b144954a2a8d2212b80895641676ff0736c1488d0ad1fd70793fe53
 
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
 PKG_MAINTAINER:=LIKE2000-ART
 
 PKG_BUILD_DEPENDS:=golang/host
 PKG_BUILD_PARALLEL:=1
+PKG_USE_MIPS16:=0
 PKG_BUILD_FLAGS:=no-mips16
 
 GO_PKG:=github.com/sipeed/picoclaw
 GO_PKG_BUILD_PKG:=github.com/sipeed/picoclaw/cmd/picoclaw
 GO_PKG_TAGS:=stdjson
 GO_PKG_LDFLAGS:=-s -w
+
 GO_PKG_LDFLAGS_X:= \
-	github.com/sipeed/picoclaw/cmd/picoclaw/internal.version=$(PKG_VERSION) \
-	github.com/sipeed/picoclaw/cmd/picoclaw/internal.gitCommit=$(PKG_SOURCE_VERSION) \
-	github.com/sipeed/picoclaw/cmd/picoclaw/internal.buildTime=$(shell date +%FT%T%z) \
-	github.com/sipeed/picoclaw/cmd/picoclaw/internal.goVersion=$(GO_VERSION_ID)
-CGO_ENABLED:=0
+	$(GO_PKG_BUILD_PKG)/internal.version=$(PKG_VERSION) \
+	$(GO_PKG_BUILD_PKG)/internal.gitCommit=$(PKG_SOURCE_VERSION) \
+	$(GO_PKG_BUILD_PKG)/internal.buildTime=$(shell date +%FT%T%z) \
+	$(GO_PKG_BUILD_PKG)/internal.goVersion=$(shell $(STAGING_DIR_HOSTPKG)/bin/go version | sed 's/go version //')
 
 include $(INCLUDE_DIR)/package.mk
 include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
-
-# PicoClaw 的 main.go 使用 //go:embed workspace 嵌入工作区模板文件
-# 源码通过 //go:generate cp -r ../../workspace . 来复制，但 OpenWrt 不会执行 go generate
-# 因此需要在编译前手动完成这个复制步骤
-define Build/Prepare
-	$(call Build/Prepare/Default)
-	$(CP) $(PKG_BUILD_DIR)/workspace $(PKG_BUILD_DIR)/cmd/picoclaw/workspace
-endef
 
 define Package/picoclaw
   TITLE:=PicoClaw - Ultra-Efficient AI Assistant
@@ -59,6 +54,11 @@ define Package/picoclaw/description
   Tiny, Fast, and Deployable anywhere — automate the mundane, unleash your creativity.
 endef
 
+define Build/Prepare
+	$(call Build/Prepare/Default)
+	$(CP) $(PKG_BUILD_DIR)/workspace $(PKG_BUILD_DIR)/cmd/picoclaw/workspace
+endef
+
 define Package/picoclaw/install
 	$(call GoPackage/Package/Install/Bin,$(1))
 
@@ -66,7 +66,7 @@ define Package/picoclaw/install
 	$(INSTALL_BIN) $(CURDIR)/files/picoclaw.init $(1)/etc/init.d/picoclaw
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) $(CURDIR)/files/picoclaw.uci-default $(1)/etc/uci-defaults/picoclaw
-	$(INSTALL_DIR) $(1)/etc/config/
+	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) $(CURDIR)/files/picoclaw.conf $(1)/etc/config/picoclaw
 	$(INSTALL_DIR) $(1)/etc/picoclaw
 	$(INSTALL_DIR) $(1)/usr/share/picoclaw
