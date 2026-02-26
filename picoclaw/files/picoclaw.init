@@ -38,8 +38,6 @@ init_config(){
 	[ -d $WORKSPACE ] || mkdir -p $WORKSPACE 2>/dev/null
 	if [ ! -s $CONF ]; then
 		cp /usr/share/picoclaw/picoclaw-config.json $CONF
-		# Run onboard to initialize workspace files
-		PICOCLAW_HOME="$CONFDIR" ${PROG} onboard 2>/dev/null || true
 	fi
 }
 

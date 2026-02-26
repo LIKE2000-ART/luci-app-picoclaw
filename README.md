@@ -422,11 +422,7 @@ picoclaw status
 
 ### 📝 其他注意事项
 
-1. **PKG_HASH**：`picoclaw/Makefile` 中的 `PKG_HASH` 对应 PicoClaw v0.1.2 源码包的 sha256 校验值。升级版本时需要重新计算：
-
-   ```bash
-   curl -sL "https://codeload.github.com/sipeed/picoclaw/tar.gz/v<新版本号>" | shasum -a 256
-   ```
+1. **编译源码分支**：`picoclaw/Makefile` 当前配置为从 PicoClaw 仓库的 `main` 分支拉取最新源码编译。每次编译都会获取 `main` 分支的最新提交。如需锁定特定版本，可将 `PKG_SOURCE_VERSION` 改为具体的 commit hash 或 tag。
 
 2. **API Key 必填**：PicoClaw 需要至少配置一个 AI 模型的 API Key 才能正常工作。推荐使用 [DeepSeek](https://platform.deepseek.com)（价格实惠）或连接本地 [Ollama](https://ollama.com) 实例。
 
@@ -464,6 +460,7 @@ opkg install --force-reinstall luci-app-picoclaw_*.ipk
 
 ### 2026.02.27 v1.1.0
 
+- **切换编译分支**：picoclaw 源码从固定版本 tarball（v0.1.2）改为从 `main` 分支 git 拉取最新源码编译
 - 新增 **手动设置** 页面 — 在线编辑 `config.json`，支持 JSON 校验、格式化、保存自动重启
 - 新增 **配置参考** 链接到 PicoClaw 官方文档
 - 新增 GitHub Actions CI 多架构自动构建（openwrt-24.10 + SNAPSHOT）
@@ -503,9 +500,9 @@ opkg install --force-reinstall luci-app-picoclaw_*.ipk
 - 代码未经全面的安全审计，**不保证安全性、稳定性和可靠性**
 - 在路由器等网络基础设施上部署未经充分验证的软件存在风险，**使用者需自行承担一切后果**
 - 作者不对因使用本项目导致的设备故障、数据丢失、安全事故等承担任何责任
-- 如发现 Bug 或安全问题，欢迎提交 Issue，但不保证及时修复
+- 如发现 Bug 或安全问题，恳请提交 Issue，受限于个人能力，修复可能不够及时，还望海涵
 
-**简单来说：这是一个新手+AI 的实验作品，好不好用全凭运气，出了问题概不负责（但欢迎反馈）。** 😅
+**简而言之：这是一个初学者与 AI 协作的尝试性作品，旨在探索与学习。由于经验有限，难免存在疏漏，请务必在非生产环境下谨慎测试。** 🙏
 
 ---
 

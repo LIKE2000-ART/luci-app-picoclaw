@@ -10,9 +10,10 @@ PKG_NAME:=picoclaw
 PKG_VERSION:=0.1.2
 PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/sipeed/picoclaw/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=973faa529b144954a2a8d2212b80895641676ff0736c1488d0ad1fd70793fe53
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/sipeed/picoclaw.git
+PKG_SOURCE_VERSION:=main
+PKG_MIRROR_HASH:=skip
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -69,6 +70,25 @@ define Package/picoclaw/install
 	$(INSTALL_DIR) $(1)/etc/picoclaw
 	$(INSTALL_DIR) $(1)/usr/share/picoclaw
 	$(INSTALL_DATA) $(CURDIR)/files/picoclaw-config.json $(1)/usr/share/picoclaw/picoclaw-config.json
+endef
+
+define Package/picoclaw/prerm
+#!/bin/sh
+# Stop service before removal
+/etc/init.d/picoclaw stop 2>/dev/null
+/etc/init.d/picoclaw disable 2>/dev/null
+exit 0
+endef
+
+define Package/picoclaw/postrm
+#!/bin/sh
+# Clean up all residual files after removal
+rm -f /etc/config/picoclaw
+rm -f /etc/config/picoclaw-opkg
+rm -rf /etc/picoclaw
+rm -f /var/log/picoclaw.log
+rm -rf /usr/share/picoclaw
+exit 0
 endef
 
 define Package/picoclaw/conffiles
