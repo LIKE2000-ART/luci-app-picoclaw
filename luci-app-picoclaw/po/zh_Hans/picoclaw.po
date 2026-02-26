@@ -10,6 +10,9 @@ msgstr "PicoClaw是一个超轻量级AI助手，体积小、速度快、可部�
 msgid "Base Setting"
 msgstr "基本设置"
 
+msgid "Manual Settings"
+msgstr "手动设置"
+
 msgid "Basic Settings"
 msgstr "基本设置"
 
@@ -70,18 +73,6 @@ msgstr "限制在工作目录"
 msgid "When enabled, the agent can only access files within the workspace directory."
 msgstr "启用后，代理只能访问工作目录内的文件。"
 
-msgid "Default Model"
-msgstr "默认模型"
-
-msgid "Max Tokens"
-msgstr "最大Token数"
-
-msgid "Temperature"
-msgstr "温度"
-
-msgid "Max Tool Iterations"
-msgstr "最大工具迭代次数"
-
 msgid "Enable Heartbeat"
 msgstr "启用心跳"
 
@@ -99,3 +90,33 @@ msgstr "日志文件不存在。"
 
 msgid "Failed to clear log."
 msgstr "清除日志失败。"
+
+msgid "Edit config.json directly. After saving, PicoClaw will be automatically restarted."
+msgstr "直接编辑 config.json 配置文件。保存后 PicoClaw 将自动重启。"
+
+msgid "Save & Apply"
+msgstr "保存并应用"
+
+msgid "Format JSON"
+msgstr "格式化 JSON"
+
+msgid "JSON format valid"
+msgstr "JSON 格式正确"
+
+msgid "JSON format error"
+msgstr "JSON 格式错误"
+
+msgid "Config saved, PicoClaw restarting..."
+msgstr "配置已保存，PicoClaw 正在重启..."
+
+msgid "Save failed"
+msgstr "保存失败"
+
+msgid "Unknown error"
+msgstr "未知错误"
+
+msgid "Saving..."
+msgstr "保存中..."
+
+msgid "Config Reference"
+msgstr "配置参考"

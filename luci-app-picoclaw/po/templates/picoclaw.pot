@@ -10,6 +10,9 @@ msgstr ""
 msgid "Base Setting"
 msgstr ""
 
+msgid "Manual Settings"
+msgstr ""
+
 msgid "Basic Settings"
 msgstr ""
 
@@ -70,18 +73,6 @@ msgstr ""
 msgid "When enabled, the agent can only access files within the workspace directory."
 msgstr ""
 
-msgid "Default Model"
-msgstr ""
-
-msgid "Max Tokens"
-msgstr ""
-
-msgid "Temperature"
-msgstr ""
-
-msgid "Max Tool Iterations"
-msgstr ""
-
 msgid "Enable Heartbeat"
 msgstr ""
 
@@ -98,4 +89,34 @@ msgid "Log file does not exist."
 msgstr ""
 
 msgid "Failed to clear log."
+msgstr ""
+
+msgid "Edit config.json directly. After saving, PicoClaw will be automatically restarted."
+msgstr ""
+
+msgid "Save & Apply"
+msgstr ""
+
+msgid "Format JSON"
+msgstr ""
+
+msgid "JSON format valid"
+msgstr ""
+
+msgid "JSON format error"
+msgstr ""
+
+msgid "Config saved, PicoClaw restarting..."
+msgstr ""
+
+msgid "Save failed"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Saving..."
+msgstr ""
+
+msgid "Config Reference"
 msgstr ""

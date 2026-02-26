@@ -154,24 +154,6 @@ return view.extend({
         o.default = '0';
         o.rmempty = false;
 
-        o = s.option(form.Value, 'model_name', _('Default Model'));
-        o.value('deepseek', 'DeepSeek');
-        o.value('gpt4', 'GPT-4');
-        o.value('claude-sonnet-4.6', 'Claude Sonnet 4.6');
-        o.value('gemini', 'Gemini');
-        o.default = 'deepseek';
-
-        o = s.option(form.Value, 'max_tokens', _('Max Tokens'));
-        o.default = '8192';
-        o.datatype = 'uinteger';
-
-        o = s.option(form.Value, 'temperature', _('Temperature'));
-        o.default = '0.7';
-        o.datatype = 'ufloat';
-
-        o = s.option(form.Value, 'max_tool_iterations', _('Max Tool Iterations'));
-        o.default = '20';
-        o.datatype = 'uinteger';
 
         // Heartbeat settings
         s = m.section(form.NamedSection, 'heartbeat', 'heartbeat');

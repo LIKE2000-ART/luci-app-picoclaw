@@ -3,8 +3,9 @@
 超轻量级 AI 助手 · OpenWrt LuCI 管理界面
 
 [![PicoClaw](https://img.shields.io/badge/PicoClaw-v0.1.2-blue.svg?style=flat-square)](https://github.com/sipeed/picoclaw)
-[![luci-app-picoclaw](https://img.shields.io/badge/luci--app--picoclaw-v1.0.0-green.svg?style=flat-square)](https://github.com/sirpdboy/luci-app-ddns-go/releases)
-[![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](https://github.com/sipeed/picoclaw/blob/main/LICENSE)
+[![luci-app-picoclaw](https://img.shields.io/badge/luci--app--picoclaw-v1.0.0-green.svg?style=flat-square)](https://github.com/LIKE2000-ART/luci-app-picoclaw/releases)
+[![License](https://img.shields.io/badge/License-MIT-orange.svg?style=flat-square)](LICENSE)
+[![Build](https://img.shields.io/github/actions/workflow/status/LIKE2000-ART/luci-app-picoclaw/picoclaw-release.yml?style=flat-square&label=CI)](https://github.com/LIKE2000-ART/luci-app-picoclaw/actions)
 
 > [!CAUTION]
 > **🚧 项目状态：实验性 / Vibe Coding 初作 🚧**
@@ -69,11 +70,12 @@ PicoClaw 是一个由 [Sipeed](https://sipeed.com) 开发的超轻量级个人 A
 
 | 文件 | 说明 |
 | ------ | ------ |
-| `htdocs/.../picoclaw/config.js` | 配置页面：服务状态、基本设置、网关、AI 模型、心跳 |
+| `htdocs/.../picoclaw/config.js` | 基本设置页：服务状态、网关、Agent、心跳 |
+| `htdocs/.../picoclaw/manual.js` | 手动设置页：在线编辑 `config.json`，保存后自动重启 |
 | `htdocs/.../picoclaw/log.js` | 日志页面：实时日志查看、按时间倒序、一键清除 |
 | `root/.../luci-app-picoclaw.json` | LuCI 菜单定义 |
 | `root/.../acl.d/luci-app-picoclaw.json` | 权限控制 (ACL) |
-| `root/.../rpcd/ucode/luci.picoclaw` | RPC 后端（版本查询、状态检查） |
+| `root/.../rpcd/ucode/luci.picoclaw` | RPC 后端（版本查询、状态检查、配置读写） |
 | `po/zh_Hans/picoclaw.po` | 简体中文翻译 |
 
 ---
@@ -94,7 +96,8 @@ PicoClaw 是一个由 [Sipeed](https://sipeed.com) 开发的超轻量级个人 A
 │   ├── Makefile                           # LuCI 应用 Makefile
 │   ├── htdocs/
 │   │   └── luci-static/resources/view/picoclaw/
-│   │       ├── config.js                  # 配置页面（JS 视图）
+│   │       ├── config.js                  # 基本设置页面（JS 视图）
+│   │       ├── manual.js                  # 手动设置页面（JSON 编辑器）
 │   │       └── log.js                     # 日志页面（JS 视图）
 │   ├── po/
 │   │   ├── templates/picoclaw.pot         # 翻译模板
@@ -122,6 +125,18 @@ PicoClaw 是一个由 [Sipeed](https://sipeed.com) 开发的超轻量级个人 A
 - 已安装 `golang/host` 编译依赖（Go 交叉编译器）
 - 已配置 `feeds/packages` 和 `feeds/luci`
 
+> [!IMPORTANT]
+> **更新 Go 工具链**：PicoClaw 编译需要 **Go >= 1.25**，而 OpenWrt 24.10 SDK 自带的是 Go 1.23。
+> 编译前必须执行 `scripts/feeds.sh` 更新 Go 工具链：
+>
+> ```bash
+> # 在 OpenWrt SDK 根目录下执行
+> bash /path/to/luci-app-picoclaw/scripts/feeds.sh
+> ```
+>
+> 该脚本会自动将 `feeds/packages/lang/golang` 替换为 [sbwml/packages_lang_golang](https://github.com/sbwml/packages_lang_golang) 的新版 Go 包。
+> **注意**：通过 GitHub Actions CI 编译时无需手动执行，CI 已使用 `go1.25` 分支自动处理。
+
 ### 方法一：通过 feeds 安装（推荐）
 
 #### 1. 添加源
@@ -129,7 +144,7 @@ PicoClaw 是一个由 [Sipeed](https://sipeed.com) 开发的超轻量级个人 A
 编辑 OpenWrt 源码根目录下的 `feeds.conf.default`，添加：
 
 ```bash
-src-git picoclaw https://github.com/sirpdboy/luci-app-ddns-go
+src-git picoclaw https://github.com/LIKE2000-ART/luci-app-picoclaw.git
 ```
 
 #### 2. 更新并安装
@@ -168,7 +183,7 @@ make package/luci-app-picoclaw/compile V=s
 
 ```bash
 # 克隆到 package 目录
-git clone https://github.com/sirpdboy/luci-app-ddns-go package/picoclaw-suite
+git clone https://github.com/LIKE2000-ART/luci-app-picoclaw.git package/picoclaw-suite
 
 # 或只拷贝需要的目录
 cp -r picoclaw/ <openwrt-source>/package/picoclaw/
@@ -180,14 +195,19 @@ make package/picoclaw/compile V=s
 make package/luci-app-picoclaw/compile V=s
 ```
 
-### 方法三：手动安装 IPK
+### 方法三：下载预编译包安装
 
-如果已有编译好的 IPK 文件，可通过以下方式安装：
+前往 [Releases](https://github.com/LIKE2000-ART/luci-app-picoclaw/releases) 下载对应架构的 `.tar.gz` 压缩包，解压后安装：
 
 ```bash
-# 上传到路由器后执行
-opkg install picoclaw_*.ipk
-opkg install luci-app-picoclaw_*.ipk
+# 解压
+tar -xzf SNAPSHOT-aarch64_generic.tar.gz
+
+# OpenWrt 24.10+（apk 格式）
+apk add --allow-untrusted packages_ci/*.apk
+
+# OpenWrt 23.05 及更早（ipk 格式）
+opkg install packages_ci/*.ipk
 
 # 重启 rpcd 和 uhttpd 使 LuCI 界面生效
 /etc/init.d/rpcd restart
@@ -225,11 +245,9 @@ config gateway 'gateway'
 config agent 'agent'
         option workspace '/etc/picoclaw/workspace'  # 工作目录
         option restrict_to_workspace '0'             # 是否限制在工作目录
-        option model_name 'deepseek'                 # 默认 AI 模型
-        option max_tokens '8192'                     # 最大 Token 数
-        option temperature '0.7'                     # 生成温度（0-1）
-        option max_tool_iterations '20'              # 最大工具迭代次数
 ```
+
+> 💡 AI 模型、Token 数、温度等高级参数请通过 LuCI **手动设置** 页面或直接编辑 `/etc/picoclaw/config.json` 配置。
 
 #### 心跳配置 (heartbeat)
 
@@ -246,7 +264,10 @@ PicoClaw 的详细配置存储在 JSON 文件中，首次启动时会从 `/usr/s
 **配置 AI 模型 API Key**（必须）：
 
 ```bash
-# SSH 登录路由器后，编辑配置文件
+# 方式一：通过 LuCI 界面编辑（推荐）
+# 服务 → PicoClaw → 手动设置
+
+# 方式二：SSH 登录路由器后编辑
 vi /etc/picoclaw/config.json
 ```
 
@@ -306,8 +327,18 @@ PicoClaw 支持多种消息通道，在 `config.json` 的 `channels` 段配置�
 - **Web 界面入口** — 一键跳转到 PicoClaw Gateway Web 界面
 - **服务控制** — 启用/禁用 PicoClaw 服务
 - **网关设置** — 配置监听地址和端口
-- **AI 模型设置** — 选择默认模型、调整 Token 数和温度
+- **Agent 设置** — 工作目录和目录限制
 - **心跳设置** — 启用/禁用定时任务心跳
+
+### 手动设置页
+
+功能包括：
+
+- **在线编辑** — 直接编辑 `/etc/picoclaw/config.json` 配置文件
+- **JSON 校验** — 保存前自动校验 JSON 格式
+- **一键格式化** — 自动美化 JSON 缩进
+- **保存并应用** — 保存配置后自动重启 PicoClaw 服务
+- **配置参考** — 右下角链接到 [PicoClaw 官方文档](https://github.com/sipeed/picoclaw/blob/main/README.md)
 
 ### 日志页
 
@@ -431,6 +462,14 @@ opkg install --force-reinstall luci-app-picoclaw_*.ipk
 
 ## 📋 版本记录
 
+### 2026.02.27 v1.1.0
+
+- 新增 **手动设置** 页面 — 在线编辑 `config.json`，支持 JSON 校验、格式化、保存自动重启
+- 新增 **配置参考** 链接到 PicoClaw 官方文档
+- 新增 GitHub Actions CI 多架构自动构建（openwrt-24.10 + SNAPSHOT）
+- 优化 Makefile 构建配置，修复 Go linker `-X` flag 问题
+- 精简基本设置页，移除模型/Token 等参数（改由手动设置页管理）
+
 ### 2026.02.26 v1.0.0
 
 - 🎉 首次发布（Vibe Coding 初作 🐣）
@@ -450,6 +489,7 @@ opkg install --force-reinstall luci-app-picoclaw_*.ipk
 - [PicoClaw](https://github.com/sipeed/picoclaw) — Sipeed 出品的超轻量级 AI 助手
 - [Sipeed](https://sipeed.com) — AIoT 开源硬件平台
 - [OpenWrt](https://openwrt.org) — 自由的嵌入式 Linux 操作系统
+- [sbwml](https://github.com/sbwml) — openwrt-gh-action-sdk 及 Go 工具链维护
 - [sirpdboy](https://github.com/sirpdboy) — OpenWrt 插件开发与维护
 - 各路 AI 大模型 — 本项目的主要「码农」🤖
 

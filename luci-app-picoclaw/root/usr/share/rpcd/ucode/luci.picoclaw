@@ -52,6 +52,37 @@ const methods = {
 			}
 			return { status: 'unknown' };
 		}
+	},
+
+	get_config: {
+		call: function() {
+			const content = readfile('/etc/picoclaw/config.json');
+			if (content)
+				return { content: content };
+			return { content: '{}', error: 'config file not found' };
+		}
+	},
+
+	set_config: {
+		args: { content: '' },
+		call: function(req) {
+			const content = req.args?.content;
+			if (!content)
+				return { code: 1, stderr: 'no content provided' };
+
+			const rc = writefile('/etc/picoclaw/config.json', content);
+			if (rc == null)
+				return { code: 1, stderr: 'failed to write config file' };
+
+			const fd = popen('/etc/init.d/picoclaw restart 2>&1');
+			let restart_output = '';
+			if (fd) {
+				restart_output = fd.read('all') || '';
+				fd.close();
+			}
+
+			return { code: 0, stdout: 'config saved and picoclaw restarted', stderr: restart_output };
+		}
 	}
 };
 
