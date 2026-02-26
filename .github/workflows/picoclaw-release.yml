@@ -74,7 +74,7 @@ jobs:
         if: always()
         run: |
           echo "========== Compiled IPK packages =========="
-          find bin/ -name "*.ipk" -exec ls -lh {} \; 2>/dev/null || echo "No IPK files found"
+          find packages/ -name "*.ipk" -exec ls -lh {} \; 2>/dev/null || echo "No IPK files found"
           echo ""
           echo "========== Build logs (last 100 lines if failed) =========="
           if [ -f logs/package/feeds/packages_ci/picoclaw/compile.txt ]; then
@@ -88,7 +88,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: picoclaw-${{ matrix.arch }}
-          path: bin/packages/${{ matrix.arch }}/packages_ci/*.ipk
+          path: packages/${{ matrix.arch }}/packages_ci/*.ipk
 
       - name: Upload packages
         if: startsWith(github.ref, 'refs/tags/')
@@ -98,4 +98,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
           replacesArtifacts: true
-          artifacts: "bin/packages/${{ matrix.arch }}/packages_ci/*.ipk"
+          artifacts: "packages/${{ matrix.arch }}/packages_ci/*.ipk"
