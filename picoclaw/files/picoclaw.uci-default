@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# Initialize picoclaw workspace on first install
-PICOCLAW_HOME="/etc/picoclaw" /usr/bin/picoclaw onboard 2>/dev/null || true
+
 
 /etc/init.d/picoclaw enable
 /etc/init.d/picoclaw start

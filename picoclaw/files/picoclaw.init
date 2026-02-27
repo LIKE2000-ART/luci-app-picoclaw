@@ -45,7 +45,7 @@ init_config(){
 	# If workspace is empty/missing templates, run onboard to generate them
 	if [ ! -f "$ws/AGENTS.md" ]; then
 		mv $CONF ${CONF}.bak 2>/dev/null
-		PICOCLAW_HOME="$CONFDIR" PICOCLAW_AGENTS_DEFAULTS_WORKSPACE="$ws" ${PROG} onboard >/dev/null 2>&1 || true
+		${PROG} onboard >/dev/null 2>&1 || true
 		mv ${CONF}.bak $CONF 2>/dev/null
 	fi
 }
@@ -56,36 +56,46 @@ start_instance() {
 	config_get delay $cfg delay 0
 	[ "x$enabled" = "x1" ] || return 1
 
-	# Read agent settings from UCI early to initialize workspace
-	config_get workspace 'agent' 'workspace' "$WORKSPACE"
+	# Read all UCI settings early and export them as environment variables
+	# so both onboard initialization and the background daemon share them.
+	config_get_bool logger $cfg logger 1
+	config_get gateway_host 'gateway' 'host' '0.0.0.0'
+	config_get gateway_port 'gateway' 'port' '18790'
 	
+	config_get workspace 'agent' 'workspace' "$WORKSPACE"
+	config_get restrict_workspace 'agent' 'restrict_to_workspace' '0'
+	
+	config_get_bool heartbeat_enabled 'heartbeat' 'enabled' 1
+	config_get heartbeat_interval 'heartbeat' 'interval' '30'
+
+	export PICOCLAW_HOME="$CONFDIR"
+	export PICOCLAW_GATEWAY_HOST="$gateway_host"
+	export PICOCLAW_GATEWAY_PORT="$gateway_port"
+	export PICOCLAW_AGENTS_DEFAULTS_WORKSPACE="$workspace"
+	export PICOCLAW_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE="$restrict_workspace"
+	export PICOCLAW_HEARTBEAT_ENABLED="$heartbeat_enabled"
+	export PICOCLAW_HEARTBEAT_INTERVAL="$heartbeat_interval"
+
 	init_config "$workspace"
 
 	[ $(awk -F. '{print $1}' /proc/uptime) -lt "120" ] && sleep $delay
 
-	config_get_bool logger $cfg logger 1
-
-	# Read gateway settings from UCI
-	config_get gateway_host 'gateway' 'host' '0.0.0.0'
-	config_get gateway_port 'gateway' 'port' '18790'
-
-	# Read rest of agent settings
-	config_get restrict_workspace 'agent' 'restrict_to_workspace' '0'
-
 	procd_open_instance
 	get_tz
 
-	# PicoClaw environment variables (procd_set_param env only once, then append)
-	procd_set_param env PICOCLAW_HOME="$CONFDIR"
+	# Pass the exported variables to the daemon process
+	procd_set_param env PICOCLAW_HOME="$PICOCLAW_HOME"
 	[ -z "$SET_TZ" ] || procd_append_param env TZ="$SET_TZ"
-	procd_append_param env PICOCLAW_GATEWAY_HOST="$gateway_host"
-	procd_append_param env PICOCLAW_GATEWAY_PORT="$gateway_port"
-	procd_append_param env PICOCLAW_AGENTS_DEFAULTS_WORKSPACE="$workspace"
-	procd_append_param env PICOCLAW_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE="$restrict_workspace"
+	procd_append_param env PICOCLAW_GATEWAY_HOST="$PICOCLAW_GATEWAY_HOST"
+	procd_append_param env PICOCLAW_GATEWAY_PORT="$PICOCLAW_GATEWAY_PORT"
+	procd_append_param env PICOCLAW_AGENTS_DEFAULTS_WORKSPACE="$PICOCLAW_AGENTS_DEFAULTS_WORKSPACE"
+	procd_append_param env PICOCLAW_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE="$PICOCLAW_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE"
+	procd_append_param env PICOCLAW_HEARTBEAT_ENABLED="$PICOCLAW_HEARTBEAT_ENABLED"
+	procd_append_param env PICOCLAW_HEARTBEAT_INTERVAL="$PICOCLAW_HEARTBEAT_INTERVAL"
 
 	# Run picoclaw gateway mode (daemon with channels support)
 	procd_set_param command /bin/sh -c "
-		${PROG} gateway --config \"$CONF\" >> /var/log/picoclaw.log 2>&1 &
+		${PROG} gateway >> /var/log/picoclaw.log 2>&1 &
 		PICOCLAW_PID=\$!
 		{
 			while true; do

@@ -82,7 +82,7 @@ return view.extend({
         s.anonymous = true;
 
         s.render = function () {
-            var statusView = E('p', { id: 'control_status' },
+            var statusView = E('p', { id: 'control_status', style: 'padding: 15px; border-radius: 8px; background: #f8f9fa; border: 1px solid #e9ecef; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 14px;' },
                 '<span class="spinning"></span> ' + _('Checking status...'));
 
             window.statusPoll = function () {
@@ -95,7 +95,7 @@ return view.extend({
                     statusView.innerHTML = renderStatus(processInfo.running, listen_port, version);
                 }).catch(function (err) {
                     console.error('Status check failed:', err);
-                    statusView.innerHTML = '<span style="color:orange">⚠ ' + _('Status check error') + '</span>';
+                    statusView.innerHTML = '<span style="color:orange; font-weight: bold;">⚠ ' + _('Status check error') + '</span>';
                 });
             };
 
@@ -103,14 +103,14 @@ return view.extend({
 
             return E('div', { class: 'cbi-section', id: 'status_bar' }, [
                 statusView,
-                E('div', { 'style': 'text-align: right; font-style: italic;' }, [
+                E('div', { 'style': 'text-align: right; font-style: italic; margin-top: 10px; color: #6c757d; font-size: 12px;' }, [
                     E('span', {}, [
-                        _('© github '),
+                        _('Powered by open source: '),
                         E('a', {
-                            'href': 'https://github.com/LIKE2000-ART',
+                            'href': 'https://github.com/sipeed/picoclaw',
                             'target': '_blank',
-                            'style': 'text-decoration: none;'
-                        }, 'by LIKE2000-ART')
+                            'style': 'text-decoration: none; color: #007bff;'
+                        }, 'PicoClaw UI by LIKE2000-ART')
                     ])
                 ])
             ]);
@@ -118,48 +118,54 @@ return view.extend({
 
         // Basic settings
         s = m.section(form.NamedSection, 'config', 'basic');
-        s.title = _('Basic Settings');
+        s.title = _('⚙️ Basic Settings');
 
-        o = s.option(form.Flag, 'enabled', _('Enable'));
+        o = s.option(form.Flag, 'enabled', _('Enable PicoClaw'));
+        o.description = _('Enable the PicoClaw background daemon.');
         o.default = o.disabled;
         o.rmempty = false;
 
         o = s.option(form.Value, 'delay', _('Delayed Start (seconds)'));
+        o.description = _('Delay the startup of the service to wait for network readiness.');
         o.default = '0';
         o.datatype = 'uinteger';
 
         // Gateway settings
         s = m.section(form.NamedSection, 'gateway', 'gateway');
-        s.title = _('Gateway Settings');
+        s.title = _('🌐 Gateway Settings');
 
         o = s.option(form.Value, 'host', _('Listen Address'));
+        o.description = _('The IP address the API server will bind to (0.0.0.0 for all interfaces).');
         o.default = '0.0.0.0';
         o.rmempty = false;
 
         o = s.option(form.Value, 'port', _('Listen Port'));
+        o.description = _('The port number for the PicoClaw local API dashboard.');
         o.default = '18790';
         o.datatype = 'port';
         o.rmempty = false;
 
         // Agent settings
         s = m.section(form.NamedSection, 'agent', 'agent');
-        s.title = _('Agent Settings');
+        s.title = _('🤖 Agent Settings');
 
         o = s.option(form.Value, 'workspace', _('Workspace Path'));
+        o.description = _('Absolute path to store AI memories, chats, tasks, and configurations. E.g., /mnt/sda1/picoclaw');
         o.default = '/etc/picoclaw/workspace';
         o.rmempty = false;
 
-        o = s.option(form.Flag, 'restrict_to_workspace', _('Restrict to workspace'));
-        o.description = _('When enabled, the agent can only access files within the workspace directory.');
+        o = s.option(form.Flag, 'restrict_to_workspace', _('Restrict to workspace (Sandbox)'));
+        o.description = _('Highly recommended. Prevents the AI from reading/modifying files outside the workspace directory.');
         o.default = '0';
         o.rmempty = false;
 
 
         // Heartbeat settings
         s = m.section(form.NamedSection, 'heartbeat', 'heartbeat');
-        s.title = _('Heartbeat Settings');
+        s.title = _('❤️ Heartbeat Settings');
 
         o = s.option(form.Flag, 'enabled', _('Enable Heartbeat'));
+        o.description = _('Send periodic keep-alive signals for active channels (e.g., Telegram, Discord).');
         o.default = '1';
         o.rmempty = false;
 
