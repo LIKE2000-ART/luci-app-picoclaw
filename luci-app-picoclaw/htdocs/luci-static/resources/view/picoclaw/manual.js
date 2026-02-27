@@ -152,8 +152,15 @@ return view.extend({
 
     handleSaveApply: function (ev) {
         return this.handleSave(ev).then(function () {
-            ui.addNotification(null, E('p', _('Config saved, PicoClaw restarting...')), 'info');
-            return fs.exec('/etc/init.d/picoclaw', ['restart']);
+            ui.showModal(_('Applying changes'), [
+                E('p', { 'class': 'spinning' }, _('Waiting for configuration to be applied...'))
+            ]);
+
+            return fs.exec('/etc/init.d/picoclaw', ['restart']).then(function () {
+                window.setTimeout(function () {
+                    ui.hideModal();
+                }, 2500);
+            });
         });
     },
 

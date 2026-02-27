@@ -54,6 +54,9 @@ endef
 define Build/Prepare
 	$(call Build/Prepare/Default)
 	$(CP) $(PKG_BUILD_DIR)/workspace $(PKG_BUILD_DIR)/cmd/picoclaw/internal/onboard/workspace
+	# Patch upstream to respect PICOCLAW_HOME rather than always using UserHomeDir
+	$(SED) 's|home, _ := os.UserHomeDir()|home := os.Getenv("PICOCLAW_HOME")\n\tif home == "" {\n\t\thome, _ = os.UserHomeDir()\n\t\thome = filepath.Join(home, ".picoclaw")\n\t}\n\treturn filepath.Join(home, "config.json")|' $(PKG_BUILD_DIR)/cmd/picoclaw/internal/helpers.go
+	$(SED) 's|return filepath.Join(home, ".picoclaw", "config.json")||' $(PKG_BUILD_DIR)/cmd/picoclaw/internal/helpers.go
 endef
 
 define Package/picoclaw/install
@@ -86,6 +89,8 @@ rm -f /etc/config/picoclaw-opkg
 rm -rf /etc/picoclaw
 rm -f /var/log/picoclaw.log
 rm -rf /usr/share/picoclaw
+rm -f /root/.picoclaw 2>/dev/null
+rm -f /.picoclaw 2>/dev/null
 exit 0
 endef
 

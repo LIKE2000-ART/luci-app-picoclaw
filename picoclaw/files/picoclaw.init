@@ -42,6 +42,17 @@ init_config(){
 		cp /usr/share/picoclaw/picoclaw-config.json $CONF
 	fi
 
+	# Create symlinks for hardcoded ~/.picoclaw paths in upstream Go code
+	# OpenWrt root home is typically /root (or / on older systems)
+	for hdir in /root /; do
+		if [ -d "$hdir" ] && [ "$hdir" != "$CONFDIR" ]; then
+			if [ ! -L "$hdir/.picoclaw" ]; then
+				rm -rf "$hdir/.picoclaw" 2>/dev/null
+				ln -s "$CONFDIR" "$hdir/.picoclaw" 2>/dev/null
+			fi
+		fi
+	done
+
 	# If workspace is empty/missing templates, run onboard to generate them
 	if [ ! -f "$ws/AGENTS.md" ]; then
 		mv $CONF ${CONF}.bak 2>/dev/null

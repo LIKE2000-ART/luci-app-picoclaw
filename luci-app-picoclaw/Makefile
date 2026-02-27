@@ -21,4 +21,18 @@ LUCI_PKGARCH:=all
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
+define Package/luci-app-picoclaw/prerm
+#!/bin/sh
+# Override default luci.mk prerm script to prevent "ubus call service delete" error.
+# The core picoclaw package handles its own service shutdown.
+exit 0
+endef
+
+define Package/luci-app-picoclaw/postrm
+#!/bin/sh
+# Override default luci.mk postrm script to prevent errors during cleanup.
+exit 0
+endef
+
 # call BuildPackage - OpenWrt buildroot signature
+
